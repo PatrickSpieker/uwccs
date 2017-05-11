@@ -9,72 +9,60 @@ import json
 from helpers import *
 from pprint import pprint
 
+
 json_output = {}
 
-asCodes = ["AFRAM", "AES", "AAS", "CHSTU", "SWA", "TAGLG",
-           "AIS", "ANTH", "ARCHY", "BIO A", "AMATH", "CFRM",
-           "ARCTIC", "ART", "ART H", "DESIGN", "ASIAN", "BENG",
-           "CHIN", "HINDI", "INDN", "INDO", "JAPAN", "KOREAN",
-           "SNKRT", "THAI", "URDU", "VIET", "ASTBIO", "ASTR",
-           "ATM S", "BIOL", "CS SS", "CSDE", "HUM", "CHEM",
-           "CL AR", "CL LI", "CLAS", "GREEK", "LATIN", "COM",
-           "CHID", "C LIT", "CSE", "FRENCH", "ITAL", "GWSS", 
-           "GIS", "GEN ST", "INDIV", "GEOG", "GERMAN", "HSTAM",
-           "HSTCMP", "HIST", "HSTAFM", "HSTAS", "HSTLAC",
-           "HSTEU", "HSTAA", "HSTRY", "HPS", "INTSCI", "ISS",
-           "JSIS", "JSIS A", "JSIS B", "JSIS C", "JSIS D", 
-           "JSIS E", "LSJ", "ASL", "LING", "MATH", "MICROM",
-           "MUSIC", "MUSAP", 'MUSED', 'MUSEN', 'MUHST', 'MUSICP', 
-           'ARAB', 'ARAMIC', 'COPTIC', 'EGYPT', 'GEEZ', 'HEBR', 
-           'BIBHEB', 'MODHEB', 'NEAR E', 'PRSAN', 'CHGTAI', 'KAZAKH', 
-           'KYRGYZ', 'UYGUR', 'UZBEK', 'TURKIC', 'TKISH', "UGARIT", 
-           'NBIO', 'PHIL', 'VALUES', 'PHYS', 'POL S', 'PSYCH', 'DANISH',
-           'ESTO', 'FINN', 'LATV', 'LITH', 'NORW', 'SCAND', 'SWED', 'BCS',
-           "BULGR", "CZECH", "POLSH", 'ROMN', 'RUSS', 'SLAV', 'SLAVIC', 'SLVN', 
-           'UKR',
-           "SOCSCI", "SOC", "PORT", "SPAN", "SPLING", "SPHSC", "STAT"]
 
+soup = get_soup("crscat.html")
 
+goal_tag = soup.find_all("ul")[1]
+for tag in goal_tag.find_all("a", href=re.compile(".*.html")):
+    # checking for parens
+    pattern = r"\([A-Z| ]*\)"
 
-for deptCode in asCodes: 
-    deptJSON = {}
-    # constructing regex patterns
-    # for this deptCode  
-    deptPatt = re.compile(deptCode.lower()+"\d\d\d")
-    # for other depts
-    coursePatt = re.compile("[A-Z].[A-Z]{1,3}\s\d\d\d")
+    # making sure we aren't looking at a non-dept line
+    if "(" not in tag.string: continue
+    first_dash = tag.string.find("--")
+    if first_dash == -1:
+        end = tag.string.find("(") - 1 
+    else:
+        end = min(tag.string.find("("), first_dash) - 1
+    dept_name = tag.string[:end]
 
-    # getting soup for this deptCode
-    soup = getSoup(downloadCourseData(deptCode))
+    search_obj =  re.search(pattern, tag.string)
+    # making sure we found a prefix
+    if not search_obj: continue
+    dept_prefix = str(search_obj.group()).translate(None, "()")
+    print dept_prefix
+    # download the course webpage
+    download_course_data(tag['href'])
+    """ 
+    dept_soup = get_soup("html/" + dept_prefix
+    # only concerned with first child
+    content = tag.findAll()[0]
+    courseId = getCourseId(content, deptCode)
+    courseClass = courseId.replace(" ", "").lower()
 
-    # finding each course in the department
-    for tag in getTags(deptPatt, soup):
-        # only concerned with first child
-        content = tag.findAll()[0]
-        courseId = getCourseId(content, deptCode)
-        courseClass = courseId.replace(" ", "").lower()
-
-        # filtering out grad level courses
-        numCID = int(float(courseId[len(deptCode):]))
-        if numCID < 500:
-            rawList = getRawPrereqList(content)
-            regPrereqs = getRegPrereqs(rawList, coursePatt)
-            choicePrereqs = getChoicePrereqs(rawList, coursePatt)
-             
-            # creating JSON object to represent current node
-            courseInfo = {u"course_id": courseId, u"regPrereqs": regPrereqs,
-                    u"choicePrereqs": choicePrereqs, u"numCID": numCID}
-            deptJSON[courseClass] = courseInfo
-
-    json_output[deptCode] = deptJSON
-            
-           
-    
-
+    # filtering out grad level courses
+    numCID = int(float(courseId[len(deptCode):]))
+    if numCID < 500:
+        rawList = getRawPrereqList(content)
+        regPrereqs = getRegPrereqs(rawList, coursePatt)
+        choicePrereqs = getChoicePrereqs(rawList, coursePatt)
+         
+        # creating JSON object to represent current node
+        courseInfo = {u"course_id": courseId, u"regPrereqs": regPrereqs,
+                u"choicePrereqs": choicePrereqs, u"numCID": numCID}
+        deptJSON[courseClass] = courseInfo
+        
+       
 with open("course-data.json", "w") as outfile:
     json.dump(json_output, fp=outfile)
 
 pprint(json_output)
+"""
+
+
 
 
 

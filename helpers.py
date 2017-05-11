@@ -4,18 +4,19 @@ import urllib
 from sys import argv
 from bs4 import BeautifulSoup
 
+def get_prefix_codes(soup):
+    pass 
 
-def downloadCourseData(deptCode):
+def download_course_data(src):
     # base url
-    url = "http://www.washington.edu/students/crscat/" + deptCode.lower() + ".html"
-    destination = deptCode + "CourseData.html"
+    url = "http://www.washington.edu/students/crscat/" + src
+    destination = 'html/' + src
     # fetching HTML
     urllib.urlretrieve(url, destination)
     return destination
 
 
-
-def getSoup(target):
+def get_soup(target):
     # opening file
     with open(target, "r") as f:
         data = f.read()
@@ -23,13 +24,11 @@ def getSoup(target):
     soup = BeautifulSoup(data, "lxml")
     return soup
 
-# takes regex pattern and Soup object
-# returns list of relavent tags
-def getTags(pattern, soup):
+def get_tags(pattern, soup):
     tags = soup.find_all("a", attrs={"name": pattern})
     return tags
 
-def getCoursesOffWith(contents):
+def get_courses_offered_with(contents):
     # checking to see if there are any relevent courses
     infoInd = str(contents).find("Prerequisite: ")
     if infoInd == -1:
@@ -37,13 +36,13 @@ def getCoursesOffWith(contents):
     infoInd += len("Prerequisite: ")
     connectionInfo = 0
 
-def hasPrereqs(content):
+def has_prereqs(content):
     return not (str(content).find("Prerequisite: ")==-1)
 
-def hasOffW(content):
+def has_offered_with(content):
     return not (str(content).find("Offered")==-1)
 
-def getRelevantEndInd(strContent, relevantStartInd): 
+def get_relevant_end_ind(strContent, relevantStartInd): 
     if strContent.find("Offered: jointly") != -1:
         return strContent.find("Offered: jointly")
     return strContent.find("<br/>", relevantStartInd) 
