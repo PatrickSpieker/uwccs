@@ -60,8 +60,8 @@ for i in course_id_raw_list:
     print str(i[0]) + ": "
     course_json = {
         u'course_id': unicode(i[0]),
-        u'req_prereqs': get_reg_prereqs(i[1], course_patt),
-        u'choice_prereqs': get_choice_prereqs(i[1], course_patt)
+        u'req_prereqs': [list(k) for k in get_reg_prereqs(i[1], course_patt)],
+        u'choice_prereqs': [list(k) for k in get_choice_prereqs(i[1], course_patt)],
     }
     json_output[i[0]] = course_json
     #print "\tRequired: " + str(get_reg_prereqs(i[1], course_patt))
