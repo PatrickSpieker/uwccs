@@ -14,7 +14,7 @@ json_output = {}
 course_ids = []
 course_id_raw_list = []
 
-soup = get_soup("crscat.html")
+soup = get_soup("html/crscat.html")
 
 goal_tag = soup.find_all("ul")[1]
 for tag in goal_tag.find_all("a", href=re.compile(".*.html")):
