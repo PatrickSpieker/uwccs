@@ -2,7 +2,7 @@
 # regex, requests, urllib, argv, and beautiful soup
 import re
 import requests
-import urllib
+import urllib.request as urllib
 import sys
 from bs4 import BeautifulSoup
 import json
@@ -13,8 +13,8 @@ from pprint import pprint
 json_output = {}
 course_ids = []
 course_id_raw_list = []
-
-soup = get_soup("html/crscat.html")
+download_course_data("", "crscat.html")
+soup = get_soup("crscat.html")
 
 goal_tag = soup.find_all("ul")[1]
 for tag in goal_tag.find_all("a", href=re.compile(".*.html")):
@@ -35,17 +35,18 @@ for tag in goal_tag.find_all("a", href=re.compile(".*.html")):
     # making sure we found a prefix
     if not search_obj:
         continue
-    dept_prefix = unicode(search_obj.group()).encode('utf-8').translate(None, "()")
-    print dept_prefix
-    print tag['href']
+    dept_prefix = search_obj.group().strip("()")
+    print(dept_name)
+    print(dept_prefix)
     # download the course webpage
-    download_course_data(tag['href'])
+    download_course_data(tag['href'], tag['href'])
     dept_soup = get_soup("html/" + tag['href'])
     class_tags = get_tags(dept_soup)
     for ct in class_tags:
         course_id = get_course_id(ct, dept_prefix)
         course_class = course_id.replace(" ", "").lower()
         # filtering out grad level courses
+        print(course_id)
         numCID = int(float(course_id[len(dept_prefix):]))
         if numCID < 500:
             raw_list = get_raw_prereq_list(ct)
@@ -57,9 +58,9 @@ for tag in goal_tag.find_all("a", href=re.compile(".*.html")):
 combined = "(" + "|".join(course_ids) + ")"
 course_patt = re.compile(combined)
 for i in course_id_raw_list:
-    print str(i[0]) + ": "
+    print(str(i[0]) + ": ")
     course_json = {
-        u'course_id': unicode(i[0]),
+        u'course_id': i[0],
         u'req_prereqs': [list(k) for k in get_reg_prereqs(i[1], course_patt)],
         u'choice_prereqs': [list(k) for k in get_choice_prereqs(i[1], course_patt)],
     }

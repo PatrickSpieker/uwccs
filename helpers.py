@@ -5,13 +5,12 @@ from sys import argv
 from bs4 import BeautifulSoup
 
 
-def download_course_data(src):
+def download_course_data(addition, src):
     # base url
-    url = "http://www.washington.edu/students/crscat/" + src
-    destination = 'html/' + src
+    url = "https://www.washington.edu/students/crscat/" + addition
     # fetching HTML
-    urllib.urlretrieve(url, destination)
-    return destination
+    urllib.request.urlretrieve(url, "html/" + src)
+    return src
 
 
 def get_soup(target):
